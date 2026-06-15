@@ -239,10 +239,12 @@ def edit_meta_data(font: Any, weight: str) -> None:
 
 
 def main() -> None:
-    if os.path.exists(BUILD_TMP):
-        shutil.rmtree(BUILD_TMP)
-    os.makedirs(BUILD_TMP)
-    os.makedirs(DIST_DIR, exist_ok=True)
+    # 中間/出力ディレクトリは毎回作り直す。dist/ をクリーンにすることで、
+    # 過去ビルドの成果物が残って package.py の同梱対象に混入するのを防ぐ。
+    for d in (BUILD_TMP, DIST_DIR):
+        if os.path.exists(d):
+            shutil.rmtree(d)
+        os.makedirs(d)
 
     # vendor 済みソースフォントが manifest の宣言バージョンと一致するか先に検証。
     verify_source_versions()
