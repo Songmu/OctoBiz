@@ -1,0 +1,17 @@
+# Build artifacts
+build_tmp/
+dist/
+*.ttf.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
