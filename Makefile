@@ -13,7 +13,7 @@ else
 	FONTFORGE_PYTHON ?= python3
 endif
 
-.PHONY: setup build lint fmt clean
+.PHONY: setup build package lint fmt clean
 
 ## setup: install system tools (fontforge, ttfautohint) and dev tools (uv)
 setup:
@@ -33,16 +33,20 @@ endif
 build:
 	$(FONTFORGE_PYTHON) build.py
 
+## package: bundle the built fonts into dist/OctoBiz_v*.zip
+package: build
+	uv run python package.py
+
 ## lint: run ruff and mypy
 lint:
-	uv run ruff check build.py
-	uv run ruff format --check build.py
-	uv run mypy build.py
+	uv run ruff check build.py package.py
+	uv run ruff format --check build.py package.py
+	uv run mypy build.py package.py
 
 ## fmt: auto-format with ruff
 fmt:
-	uv run ruff format build.py
-	uv run ruff check --fix build.py
+	uv run ruff format build.py package.py
+	uv run ruff check --fix build.py package.py
 
 ## clean: remove build artifacts
 clean:
