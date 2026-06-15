@@ -23,6 +23,7 @@ On macOS with Homebrew::
 Python, so use that interpreter rather than a virtualenv `python3`.)
 """
 
+import math
 import os
 import re
 import shutil
@@ -71,13 +72,17 @@ SOURCE_DIR = "source_fonts"
 SOURCE_FONT_JP = "BIZUDPGothic-{}.ttf"
 SOURCE_FONT_EN = "MonaSans-{}.ttf"
 
-# BIZ UDPGothic の em は 2048 だが、BIZTER と同様 ascent/descent を分けて持つ。
-# ここは BIZTER の値をそのまま踏襲。実機検証で調整余地あり。
-EM_ASCENT = 1782
-EM_DESCENT = 266
+# em は BIZ UDPGothic に合わせて 2048。ベースライン分割も実フォントの値に倣う。
+# (font.ascent/descent はベースライン=0 を動かさず、主にメタ情報として使われる)
+EM_ASCENT = 1802
+EM_DESCENT = 246
+UPEM = EM_ASCENT + EM_DESCENT  # 2048
 
-FONT_ASCENT = EM_ASCENT + 40
-FONT_DESCENT = EM_DESCENT + 190
+# 行送りに使う縦メトリクス(typo / hhea)。和欧混植で詰まり過ぎないよう、
+# BIZ UDPGothic の em(2048)よりやや広めの約 1.11em に取る(BIZTER 系の運用を踏襲)。
+# USE_TYPO_METRICS を立てるので、これが全プラットフォームでの行送りの正本になる。
+LINE_ASCENT = 1822
+LINE_DESCENT = 456
 
 # Bold 時に Mona Sans のどのウェイトを当てるか。
 # BIZ UDPGothic Bold の太さに視覚的に近いのは SemiBold〜Bold。まずは SemiBold で運用し、
@@ -185,7 +190,7 @@ def adjust_font_scale(en_font: Any) -> None:
 
 
 def merge_fonts(jp_font: Any, en_font: Any, weight: str) -> Any:
-    em_size = EM_ASCENT + EM_DESCENT
+    em_size = UPEM
     jp_font.em = em_size
     en_font.em = em_size
 
@@ -200,20 +205,44 @@ def build_description() -> str:
     return PROJECT["font"]["description"]
 
 
+def ink_extent(font: Any) -> tuple[int, int]:
+    """マージ後フォントの実グリフ上下端を (上方向, 下方向) の正の大きさで返す。
+
+    usWinAscent/usWinDescent はグリフのインクを覆うクリップ枠なので、
+    欧文を 1.06 倍に拡大したことで em 枠から食み出す字形があっても
+    切れないよう、実測したバウンディングボックスから決める。
+    """
+    ymax = 0.0
+    ymin = 0.0
+    for glyph in font.glyphs():
+        if not glyph.isWorthOutputting():
+            continue
+        _xmin, gymin, _xmax, gymax = glyph.boundingBox()
+        ymax = max(ymax, gymax)
+        ymin = min(ymin, gymin)
+    return math.ceil(ymax), math.ceil(-ymin)
+
+
 def edit_meta_data(font: Any, weight: str) -> None:
     font.ascent = EM_ASCENT
     font.descent = EM_DESCENT
 
-    font.os2_typoascent = FONT_ASCENT
-    font.os2_typodescent = -FONT_DESCENT
+    # 行送りの正本となる typo メトリクス。USE_TYPO_METRICS を立て、
+    # Windows でも typo 系が使われるようにして全環境で行送りを揃える。
+    font.os2_typoascent = LINE_ASCENT
+    font.os2_typodescent = -LINE_DESCENT
     font.os2_typolinegap = 0
+    font.os2_use_typo_metrics = True
 
-    font.hhea_ascent = FONT_ASCENT
-    font.hhea_descent = -FONT_DESCENT
+    # macOS が参照する hhea も typo と同値にして行送りを一致させる。
+    font.hhea_ascent = LINE_ASCENT
+    font.hhea_descent = -LINE_DESCENT
     font.hhea_linegap = 0
 
-    font.os2_winascent = FONT_ASCENT
-    font.os2_windescent = FONT_DESCENT
+    # win はクリップ枠。行送り(LINE_*)と実グリフ範囲の両方を必ず覆う。
+    ink_ascent, ink_descent = ink_extent(font)
+    font.os2_winascent = max(LINE_ASCENT, ink_ascent)
+    font.os2_windescent = max(LINE_DESCENT, ink_descent)
 
     # OpenType の name ID 5 は "Version X.YYY" 形式が推奨。FONT_REVISION を使う。
     version_str = f"Version {FONT_REVISION}"
