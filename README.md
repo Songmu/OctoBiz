@@ -89,6 +89,27 @@ cp fonts/static/ttf/MonaSans-{Regular,SemiBold,Bold}.ttf source_fonts/
 
 成果物は `dist/OctoBiz-Regular.ttf` および `dist/OctoBiz-Bold.ttf` に生成されます。
 
+## プロジェクトメタデータ (`fontproject.toml`)
+
+このフォント自身のバージョンと、依存フォント（ソースフォント）のバージョン・由来は、リポジトリ直下の [`fontproject.toml`](fontproject.toml) に集約しています。`build.py` はこのファイルを唯一の真実 (single source of truth) として読み込み、
+
+- `[font].version` を出力フォントのバージョン採番に使用
+- 各依存の `version` をフォントの Description (`name` ID 10) とコピーライトへ埋め込み
+- vendor 済みの `source_fonts/*.ttf` の実バージョンが宣言値と一致するか**ビルド時に照合**（不一致ならビルドを失敗させ、取り違えを防止）
+
+します。バージョンや依存を更新する際は、まず `fontproject.toml` を編集してください。
+
+> [!NOTE]
+> 依存の厳密なピン留め（リリースタグ / コミットハッシュ単位の固定）は将来対応予定で、現状は人間が読むための `version` の記録と照合のみを行います。
+
+## バージョニング
+
+バージョンは、`fontproject.toml` の `[font].version` にsemver形式で記載します。git tagは `v` prefix付きの値を使用します。
+
+
+一方、OpenType の数値バージョン（`name` ID 5 / `head.fontRevision`）は仕様上 `MAJOR.MINOR`（小数部ちょうど3桁）しか持てず、semver をそのまま格納できません（[OpenFV](https://github.com/openfv/openfv) でも MINOR は3桁固定）。そこで小数部3桁を **minor 2桁 + patch 1桁** に割り当てる方法を採用します。
+
+
 ## 既知の検討ポイント
 
 1. **Bold ウェイトマッチング**: 現状は欧文側を `MonaSans-SemiBold` で合わせています。実プレゼン投影で太さ感を見ながら `Bold` / `ExtraBold` への切り替えを検討してください（`build.py` の `EN_WEIGHT_FOR_JP_BOLD` で変更可）。

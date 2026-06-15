@@ -24,16 +24,44 @@ Python, so use that interpreter rather than a virtualenv `python3`.)
 """
 
 import os
+import re
 import shutil
 import subprocess
-from typing import Any, Tuple
+import tomllib
+from typing import Any, Dict, List, Tuple
 from unicodedata import east_asian_width
 
 import fontforge
 import psMat
 
-VERSION = "v0.0.1"
-FONT_NAME = "OctoBiz"
+MANIFEST = "fontproject.toml"
+
+
+def load_manifest(path: str = MANIFEST) -> Dict[str, Any]:
+    """プロジェクトのメタデータ(バージョン・依存情報)を TOML から読み込む。"""
+    with open(path, "rb") as f:
+        return tomllib.load(f)
+
+
+def font_revision(version: str) -> str:
+    """semver "MAJOR.MINOR.PATCH" を OpenType の version 文字列 "X.MMP" に変換する。
+    制約: minor は 0–99、patch は 0–9。これを超える場合は桁上げ(上位を増やす)運用とする。
+    """
+    major, minor, patch = (int(x) for x in version.split("."))
+    if not (0 <= minor <= 99):
+        raise ValueError(f"minor must be 0-99 for X.MMP scheme: {version}")
+    if not (0 <= patch <= 9):
+        raise ValueError(f"patch must be 0-9 for X.MMP scheme: {version}")
+    return f"{major}.{minor:02d}{patch:01d}"
+
+
+PROJECT = load_manifest()
+DEPENDENCIES: List[Dict[str, Any]] = PROJECT.get("dependencies", [])
+
+FONT_NAME = PROJECT["font"]["name"]
+VERSION = PROJECT["font"]["version"]
+VENDOR_ID = PROJECT["font"]["vendor_id"]
+FONT_REVISION = font_revision(VERSION)
 
 BUILD_TMP = "build_tmp"
 DIST_DIR = "dist"
@@ -54,18 +82,59 @@ FONT_DESCENT = EM_DESCENT + 190
 # 実機で見て要調整。
 EN_WEIGHT_FOR_JP_BOLD = "SemiBold"
 
-COPYRIGHT = """[Mona Sans]
-Copyright 2022 The Mona Sans Project Authors (https://github.com/github/mona-sans), with Reserved Font Name "Mona"
 
-[BIZ UDPGothic]
-Copyright 2022 The BIZ UDGothic Project Authors (https://github.com/googlefonts/morisawa-biz-ud-gothic)
+def _copyright_block(entry: Dict[str, Any]) -> str:
+    section = entry.get("copyright_section", entry["name"])
+    return f"[{section}]\n{entry['copyright']}"
 
-[BIZTER build script, from which build.py is derived]
-Copyright 2022 Yuko OTAWARA (https://github.com/yuru7/BIZTER), with Reserved Font Name "BIZTER"
 
-[OctoBiz]
-Copyright 2026 Masayuki Matsuki (Songmu)
-"""
+def build_copyright() -> str:
+    """フォント埋め込み用の copyright を生成する。"""
+    blocks = [_copyright_block(dep) for dep in DEPENDENCIES]
+    font = PROJECT["font"]
+    blocks.append(f"[{font['name']}]\n{font['copyright']}")
+    return "\n\n".join(blocks) + "\n"
+
+
+COPYRIGHT = build_copyright()
+
+
+def parse_version_number(version_string: str) -> str:
+    """name ID 5 の文字列から数値部分 (例 "Version 1.051" -> "1.051") を取り出す。"""
+    m = re.search(r"(\d+\.\d+)", version_string)
+    return m.group(1) if m else ""
+
+
+def verify_source_versions():
+    """vendor 済みソースフォントの実バージョンが manifest の宣言と一致するか検証する。
+
+    `version` と `files` を両方持つ依存エントリのみを対象とする。不一致は
+    取り違え事故を防ぐためビルドを失敗させる。
+    """
+    for dep in DEPENDENCIES:
+        declared = dep.get("version")
+        files = dep.get("files")
+        if not declared or not files:
+            continue
+        for filename in files:
+            path = f"{SOURCE_DIR}/{filename}"
+            font = fontforge.open(path)
+            actual = parse_version_number(read_version(font))
+            font.close()
+            if actual != declared:
+                raise ValueError(
+                    f"version mismatch for {dep['name']} ({filename}): "
+                    f"manifest declares {declared!r} but the vendored font "
+                    f"reports {actual!r}. Update {MANIFEST} or the source font."
+                )
+
+
+def read_version(font) -> str:
+    """フォントの name テーブルから Version 文字列を取り出す。"""
+    for lang, key, value in font.sfnt_names:
+        if key == "Version":
+            return value
+    return ""
 
 
 def open_font(weight: str) -> Tuple[Any, Any]:
@@ -124,6 +193,11 @@ def merge_fonts(jp_font, en_font, weight: str) -> Any:
     return jp_font
 
 
+def build_description() -> str:
+    """フォントに埋め込む書体説明 (name ID 10) を manifest から取得する。"""
+    return PROJECT["font"]["description"]
+
+
 def edit_meta_data(font, weight: str):
     font.ascent = EM_ASCENT
     font.descent = EM_DESCENT
@@ -139,6 +213,10 @@ def edit_meta_data(font, weight: str):
     font.os2_winascent = FONT_ASCENT
     font.os2_windescent = FONT_DESCENT
 
+    # OpenType の name ID 5 は "Version X.YYY" 形式が推奨。FONT_REVISION を使う。
+    version_str = f"Version {FONT_REVISION}"
+
+    font.version = FONT_REVISION
     font.sfnt_names = (
         (
             "English (US)",
@@ -148,13 +226,13 @@ def edit_meta_data(font, weight: str):
             "https://openfontlicense.org",
         ),
         ("English (US)", "License URL", "https://openfontlicense.org"),
-        ("English (US)", "Version", f"{FONT_NAME} {VERSION}"),
+        ("English (US)", "Version", version_str),
+        ("English (US)", "Descriptor", build_description()),
     )
     font.familyname = FONT_NAME
     font.fontname = f"{FONT_NAME}-{weight}"
     font.fullname = f"{FONT_NAME} {weight}"
-    # 4 文字のベンダ ID。Songmu に因んだ任意の識別子。
-    font.os2_vendor = "Smu "
+    font.os2_vendor = VENDOR_ID
     font.copyright = COPYRIGHT
 
 
@@ -163,6 +241,9 @@ def main():
         shutil.rmtree(BUILD_TMP)
     os.makedirs(BUILD_TMP)
     os.makedirs(DIST_DIR, exist_ok=True)
+
+    # vendor 済みソースフォントが manifest の宣言バージョンと一致するか先に検証。
+    verify_source_versions()
 
     for weight in ("Regular", "Bold"):
         jp_font, en_font = open_font(weight)
@@ -175,8 +256,9 @@ def main():
         out_path = f"{DIST_DIR}/{FONT_NAME}-{weight}.ttf"
         font.generate(gen_path)
 
+        # `--no-info` で ttfautohint が version 文字列を書き換えるのを防ぐ。
         subprocess.run(
-            ("ttfautohint", "--dehint", gen_path, out_path),
+            ("ttfautohint", "--dehint", "--no-info", gen_path, out_path),
             check=True,
         )
         print(f"built: {out_path}")
