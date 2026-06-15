@@ -9,7 +9,7 @@
 name = "octobiz"
 version = "0"
 description = "Build tooling for the OctoBiz font"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [dependency-groups]
 dev = [
@@ -21,7 +21,7 @@ dev = [
 package = false
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
@@ -34,7 +34,7 @@ select = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true

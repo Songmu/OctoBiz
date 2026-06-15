@@ -93,6 +93,14 @@ make build
 
 成果物は `dist/OctoBiz-Regular.ttf` および `dist/OctoBiz-Bold.ttf` に生成されます。
 
+### 配布用 zip の生成
+
+```sh
+make package
+```
+
+`dist/OctoBiz_v<version>.zip` を生成します。zip 内は単一ルートフォルダ `OctoBiz_v<version>/` に `.ttf` 一式・`LICENSE`・配布用 `README.md` を同梱します（バージョンは `fontproject.toml` 由来）。`package.py` は標準ライブラリのみで動作し FontForge 非依存です。
+
 ### Lint / フォーマット
 
 ```sh
