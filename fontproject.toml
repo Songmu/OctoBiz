@@ -1,0 +1,33 @@
+[font]
+name = "OctoBiz"
+# build.py converts this into the OpenType numeric version using the
+# "X.MMP" scheme (minor 2 digits + patch 1 digit), e.g. 0.0.1 -> 0.001.
+version = "0.0.0"
+vendor_id = "SNGM"
+copyright = "Copyright 2026 Masayuki Matsuki (Songmu)"
+license = "OFL-1.1"
+description = "OctoBiz is a Japanese gothic typeface designed for GitHub-related slides and documents, based on BIZ UDPGothic for Japanese and GitHub's Mona Sans for Latin."
+
+[[dependencies]]
+name = "Mona Sans"
+repository = "https://github.com/github/mona-sans"
+version = "2.027"
+reserved_font_name = "Mona"
+license = "OFL-1.1"
+copyright = 'Copyright 2022 The Mona Sans Project Authors (https://github.com/github/mona-sans), with Reserved Font Name "Mona"'
+files = [
+    "MonaSans-Regular.ttf",
+    "MonaSans-SemiBold.ttf",
+    "MonaSans-Bold.ttf",
+]
+
+[[dependencies]]
+name = "BIZ UDPGothic"
+repository = "https://github.com/googlefonts/morisawa-biz-ud-gothic"
+version = "1.051"
+license = "OFL-1.1"
+copyright = "Copyright 2022 The BIZ UDGothic Project Authors (https://github.com/googlefonts/morisawa-biz-ud-gothic)"
+files = [
+    "BIZUDPGothic-Regular.ttf",
+    "BIZUDPGothic-Bold.ttf",
+]
