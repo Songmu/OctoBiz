@@ -42,7 +42,7 @@ def build_readme(project: dict[str, Any], font_paths: list[Path]) -> str:
         "",
         font["description"],
         "",
-        "## Files",
+        "## Fonts",
         "",
     ]
     lines += [f"- {p.name}" for p in font_paths]
