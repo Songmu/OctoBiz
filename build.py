@@ -28,7 +28,7 @@ import re
 import shutil
 import subprocess
 import tomllib
-from typing import Any, Dict, List, Tuple
+from typing import Any
 from unicodedata import east_asian_width
 
 import fontforge
@@ -37,7 +37,7 @@ import psMat
 MANIFEST = "fontproject.toml"
 
 
-def load_manifest(path: str = MANIFEST) -> Dict[str, Any]:
+def load_manifest(path: str = MANIFEST) -> dict[str, Any]:
     """プロジェクトのメタデータ(バージョン・依存情報)を TOML から読み込む。"""
     with open(path, "rb") as f:
         return tomllib.load(f)
@@ -45,7 +45,8 @@ def load_manifest(path: str = MANIFEST) -> Dict[str, Any]:
 
 def font_revision(version: str) -> str:
     """semver "MAJOR.MINOR.PATCH" を OpenType の version 文字列 "X.MMP" に変換する。
-    制約: minor は 0–99、patch は 0–9。これを超える場合は桁上げ(上位を増やす)運用とする。
+    制約: minor は 0–99、patch は 0–9。
+    これを超える場合は桁上げ(上位を増やす)運用とする。
     """
     major, minor, patch = (int(x) for x in version.split("."))
     if not (0 <= minor <= 99):
@@ -56,7 +57,7 @@ def font_revision(version: str) -> str:
 
 
 PROJECT = load_manifest()
-DEPENDENCIES: List[Dict[str, Any]] = PROJECT.get("dependencies", [])
+DEPENDENCIES: list[dict[str, Any]] = PROJECT.get("dependencies", [])
 
 FONT_NAME = PROJECT["font"]["name"]
 VERSION = PROJECT["font"]["version"]
@@ -83,7 +84,7 @@ FONT_DESCENT = EM_DESCENT + 190
 EN_WEIGHT_FOR_JP_BOLD = "SemiBold"
 
 
-def _copyright_block(entry: Dict[str, Any]) -> str:
+def _copyright_block(entry: dict[str, Any]) -> str:
     section = entry.get("copyright_section", entry["name"])
     return f"[{section}]\n{entry['copyright']}"
 
@@ -105,7 +106,7 @@ def parse_version_number(version_string: str) -> str:
     return m.group(1) if m else ""
 
 
-def verify_source_versions():
+def verify_source_versions() -> None:
     """vendor 済みソースフォントの実バージョンが manifest の宣言と一致するか検証する。
 
     `version` と `files` を両方持つ依存エントリのみを対象とする。不一致は
@@ -129,15 +130,15 @@ def verify_source_versions():
                 )
 
 
-def read_version(font) -> str:
+def read_version(font: Any) -> str:
     """フォントの name テーブルから Version 文字列を取り出す。"""
-    for lang, key, value in font.sfnt_names:
+    for _lang, key, value in font.sfnt_names:
         if key == "Version":
             return value
     return ""
 
 
-def open_font(weight: str) -> Tuple[Any, Any]:
+def open_font(weight: str) -> tuple[Any, Any]:
     """ソースフォントを開く。Bold 時は欧文側のウェイトを差し替える。"""
     jp_font = fontforge.open(f"{SOURCE_DIR}/{SOURCE_FONT_JP.format(weight)}")
     en_weight = EN_WEIGHT_FOR_JP_BOLD if weight == "Bold" else weight
@@ -158,7 +159,7 @@ def open_font(weight: str) -> Tuple[Any, Any]:
     return jp_font, en_font
 
 
-def remove_duplicate_glyphs(jp_font, en_font):
+def remove_duplicate_glyphs(jp_font: Any, en_font: Any) -> None:
     """重複グリフは原則 JP 側を残し、East Asian Ambiguous は JP 優先で EN 側を消す。"""
     for g in en_font.glyphs():
         if not g.isWorthOutputting():
@@ -173,7 +174,7 @@ def remove_duplicate_glyphs(jp_font, en_font):
                 g_jp.clear()
 
 
-def adjust_font_scale(en_font):
+def adjust_font_scale(en_font: Any) -> None:
     """欧文側を少し拡大して JP のサイズ感に揃える。"""
     for glyph in en_font.glyphs():
         if not glyph.isWorthOutputting():
@@ -182,7 +183,7 @@ def adjust_font_scale(en_font):
         glyph.transform(psMat.translate(0, -10))
 
 
-def merge_fonts(jp_font, en_font, weight: str) -> Any:
+def merge_fonts(jp_font: Any, en_font: Any, weight: str) -> Any:
     em_size = EM_ASCENT + EM_DESCENT
     jp_font.em = em_size
     en_font.em = em_size
@@ -198,7 +199,7 @@ def build_description() -> str:
     return PROJECT["font"]["description"]
 
 
-def edit_meta_data(font, weight: str):
+def edit_meta_data(font: Any, weight: str) -> None:
     font.ascent = EM_ASCENT
     font.descent = EM_DESCENT
 
@@ -236,7 +237,7 @@ def edit_meta_data(font, weight: str):
     font.copyright = COPYRIGHT
 
 
-def main():
+def main() -> None:
     if os.path.exists(BUILD_TMP):
         shutil.rmtree(BUILD_TMP)
     os.makedirs(BUILD_TMP)

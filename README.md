@@ -43,18 +43,22 @@ OctoBiz は以下の素晴らしいフォント／プロジェクトの上に成
 - macOS / Linux
 - [FontForge](https://fontforge.org/) (Python bindings 同梱)
 - [ttfautohint](https://www.freetype.org/ttfautohint/)
+- [uv](https://docs.astral.sh/uv/)（開発ツール: ruff / mypy の管理用）
 
-macOS (Homebrew):
+### セットアップ
+
+`make setup` が OS を判別して上記ツールを導入し、開発ツールを `uv sync` で同期します。
 
 ```sh
-brew install fontforge ttfautohint
-# Homebrew の fontforge は同梱の Python (例: python3.14) にだけバインディングを入れる
-/opt/homebrew/bin/python3 -c "import fontforge; print(fontforge.version())"
+make setup
 ```
+
+> [!NOTE]
+> `fontforge` / `psMat` は FontForge 同梱の Python 専用モジュールで PyPI からは入りません。そのためフォントのビルドは uv の仮想環境ではなく **システムの FontForge Python** で実行します（macOS Homebrew では `/opt/homebrew/bin/python3`）。uv が管理するのは ruff / mypy などの開発ツールのみです。
 
 ### ソースフォントの取得
 
-`source_fonts/` 配下に以下のファイル一式を配置します（OFL のもとで再配布が許可されているためリポジトリにも同梱済みなので、通常はこの手順をスキップして `python build.py` だけで OK です）。
+`source_fonts/` 配下に以下のファイル一式を配置します（OFL のもとで再配布が許可されているためリポジトリにも同梱済みなので、通常はこの手順をスキップして `make build` だけで OK です）。
 
 ```
 source_fonts/
@@ -84,10 +88,18 @@ cp fonts/static/ttf/MonaSans-{Regular,SemiBold,Bold}.ttf source_fonts/
 ### ビルド
 
 ```sh
-/opt/homebrew/bin/python3 build.py
+make build
 ```
 
 成果物は `dist/OctoBiz-Regular.ttf` および `dist/OctoBiz-Bold.ttf` に生成されます。
+
+### Lint / フォーマット
+
+```sh
+make lint   # ruff (check + format --check) と mypy
+make fmt    # ruff で自動整形・自動修正
+```
+
 
 ## プロジェクトメタデータ (`fontproject.toml`)
 
