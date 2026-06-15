@@ -129,6 +129,16 @@ make fmt    # ruff で自動整形・自動修正
 
 一方、OpenType の数値バージョン（`name` ID 5 / `head.fontRevision`）は仕様上 `MAJOR.MINOR`（小数部ちょうど3桁）しか持てず、semver をそのまま格納できません（[OpenFV](https://github.com/openfv/openfv) でも MINOR は3桁固定）。そこで小数部3桁を **minor 2桁 + patch 1桁** に割り当てる方法を採用します。
 
+## リリース
+
+リリースは [tagpr](https://github.com/Songmu/tagpr) で自動化しています。
+
+1. `main` に変更が積み上がると、tagpr が次バージョンの**リリース PR** を自動で作成・更新します（`fontproject.toml` の `version` を更新）。
+2. そのリリース PR をマージすると、tagpr が **タグを打ち、リリースノート付きの draft リリースを作成**します。
+3. GitHub Actions（`.github/actions/release`）が **フォントをビルドして zip を生成し、[ghr](https://github.com/tcnksm/ghr) でリリースに添付**します。`ghr` は draft を検出してアセット追加後に **自動で publish** します。
+
+手動でタグ（`v[0-9]+.[0-9]+.[0-9]+`）を push した場合も、`release` ワークフローが同じ手順でリリースを作成します。
+
 
 ## 既知の検討ポイント
 
