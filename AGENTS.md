@@ -1,46 +1,51 @@
 # AGENTS.md
 
-OctoBiz で作業する AI エージェント向けの補足ガイド。プロジェクト概要・ビルド方法・
-バージョニング・リリースの詳細は [README.md](README.md) を参照し、ここには **README に
-書かれていない／エージェントが間違えやすい点**だけをまとめる。
+Supplementary guide for AI agents working on OctoBiz. For the project overview,
+build instructions, versioning, and release flow, see [README.md](README.md).
+This file only captures what is **not in the README and what agents tend to get
+wrong**.
 
-## 作業の進め方
+## Workflow
 
-- コードを変更したら **コミット前に `make lint` を通す**（CI と同じ: ruff + mypy）。
-  フォント合成に関わる変更は `make build`（FontForge 同梱 Python が必要）でビルドが
-  通ることも確認する。
-- 縦メトリクスなど見た目に影響する変更は、`dist` の生成物を fonttools 等で実測し
-  before/after を比較して確認する。
+- After changing code, **run `make lint` before committing** (same as CI: ruff +
+  mypy). For changes that affect font synthesis, also confirm the build passes
+  with `make build` (which requires FontForge's bundled Python).
+- For changes that affect appearance (e.g. vertical metrics), measure the
+  generated files under `dist` with fonttools or similar and compare before/after.
 
-## 間違えやすい点
+## Common pitfalls
 
-### バージョニングの patch 0–9 制限
-フォント内部バージョンは X.MMP 方式（minor 2 桁 + patch 1 桁）で、**patch は 0–9 しか
-持てない**（`build.py` の `font_revision()` が import 時に検証）。tagpr のデフォルトの
-patch bump では `0.0.9` の次に `0.0.10` が作られて **ビルドが `ValueError` で落ちる**。
-patch が 9 に達したら、リリース PR を `minor` ラベルで minor bump に手動で切り替える。
+### patch 0–9 limit in versioning
+The font's internal version uses the X.MMP scheme (minor 2 digits + patch
+1 digit), so **patch can only be 0–9** (validated at import time by
+`font_revision()` in `build.py`). With tagpr's default patch bump, `0.0.9` is
+followed by `0.0.10`, which makes the **build fail with `ValueError`**. When
+patch reaches 9, manually switch the release PR to a minor bump using the
+`minor` label.
 
-### ソースフォント差し替え時
-`source_fonts/*.ttf` を更新したら `fontproject.toml` の依存 `version` も合わせる。
-`build.py` の `verify_source_versions()` が不一致を検出してビルドを失敗させる。
+### Replacing source fonts
+When you update `source_fonts/*.ttf`, also update the corresponding dependency
+`version` in `fontproject.toml`. `verify_source_versions()` in `build.py`
+detects mismatches and fails the build.
 
-### 合成ロジック（`build.py`）
-- 重複グリフは **JP（BIZ UDPGothic）優先**。East Asian Ambiguous 幅も JP を残す。
-- 縦メトリクスは **マジックナンバーを足し戻さず実測ベースで決める**
-  （`usWin*` は `ink_extent()` でグリフ範囲から算出）。
+### Synthesis logic (`build.py`)
+- For duplicate glyphs, **JP (BIZ UDPGothic) takes priority**; JP is also kept
+  for East Asian Ambiguous width characters.
+- Decide vertical metrics from **measured values rather than re-adding magic
+  numbers** (`usWin*` is computed from the glyph extent via `ink_extent()`).
 
 ## GitHub Actions
 
-ワークフローを追加・変更したら **`ghalint run`** でポリシー検査を通し、
-**`pinact run`** でアクションを full commit SHA にピンする。
+After adding or changing a workflow, run **`ghalint run`** to pass the policy
+checks, and **`pinact run`** to pin actions to full commit SHAs.
 
-## コミット / PR
+## Commits / PRs
 
-- コミットメッセージは **日本語**。
-- 以下の trailer を付ける（不要と明示されない限り）:
+- Write commit messages in **Japanese**.
+- Add the following trailer (unless explicitly told not to):
 
   ```
   Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
   ```
 
-- PR は `main` ベース。CI（lint + build）が通ることを確認する。
+- Base PRs on `main`. Confirm CI (lint + build) passes.
