@@ -9,9 +9,23 @@
 > [!IMPORTANT]
 > **OctoBiz は GitHub の公式プロダクトではありません。** 個人プロジェクトとして、GitHub の OSS フォントである Mona Sans と BIZ UDPGothic を組み合わせた派生フォントを配布しているだけのものです。
 
-## ダウンロード
+## インストール
 
-[Releases](https://github.com/Songmu/OctoBiz/releases) から最新版の `.ttf` を取得してください。
+### Homebrew (macOS)
+
+```sh
+brew install Songmu/tap/octobiz
+```
+
+初回は third-party tap の信頼確認（`The following taps are not trusted`）が表示されます。`y` で続行するか、恒久的に信頼するなら次を実行してください。
+
+```sh
+brew tap --trust Songmu/tap
+```
+
+### 手動ダウンロード
+
+[Releases](https://github.com/Songmu/OctoBiz/releases) から最新版の zip を取得・展開し、`.ttf` を OS にインストールしてください。
 
 提供ウェイト:
 
