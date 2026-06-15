@@ -7,6 +7,8 @@ vendor_id = "SNGM"
 copyright = "Copyright 2026 Masayuki Matsuki (Songmu)"
 license = "OFL-1.1"
 description = "OctoBiz is a Japanese gothic typeface designed for GitHub-related slides and documents, based on BIZ UDPGothic for Japanese and GitHub's Mona Sans for Latin."
+# Weights to build. Output file names are derived as "<name>-<weight>.ttf".
+weights = ["Regular", "Bold"]
 
 [[dependencies]]
 name = "Mona Sans"

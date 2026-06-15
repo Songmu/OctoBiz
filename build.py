@@ -62,6 +62,7 @@ DEPENDENCIES: list[dict[str, Any]] = PROJECT.get("dependencies", [])
 FONT_NAME = PROJECT["font"]["name"]
 VERSION = PROJECT["font"]["version"]
 VENDOR_ID = PROJECT["font"]["vendor_id"]
+WEIGHTS = PROJECT["font"]["weights"]
 FONT_REVISION = font_revision(VERSION)
 
 BUILD_TMP = "build_tmp"
@@ -246,7 +247,7 @@ def main() -> None:
     # vendor 済みソースフォントが manifest の宣言バージョンと一致するか先に検証。
     verify_source_versions()
 
-    for weight in ("Regular", "Bold"):
+    for weight in WEIGHTS:
         jp_font, en_font = open_font(weight)
         remove_duplicate_glyphs(jp_font, en_font)
         adjust_font_scale(en_font)

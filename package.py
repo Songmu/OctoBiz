@@ -25,7 +25,6 @@ from typing import Any
 MANIFEST = "fontproject.toml"
 DIST_DIR = Path("dist")
 LICENSE_FILE = Path("LICENSE")
-FONT_FILENAMES = ("OctoBiz-Regular.ttf", "OctoBiz-Bold.ttf")
 
 
 def load_manifest(path: str = MANIFEST) -> dict[str, Any]:
@@ -34,7 +33,7 @@ def load_manifest(path: str = MANIFEST) -> dict[str, Any]:
         return tomllib.load(f)
 
 
-def build_readme(project: dict[str, Any], arcname: str) -> str:
+def build_readme(project: dict[str, Any], font_paths: list[Path]) -> str:
     """配布物に同梱するエンドユーザー向けの README を manifest から生成する。"""
     font = project["font"]
     name = font["name"]
@@ -46,7 +45,7 @@ def build_readme(project: dict[str, Any], arcname: str) -> str:
         "## Files",
         "",
     ]
-    lines += [f"- {fn}" for fn in FONT_FILENAMES]
+    lines += [f"- {p.name}" for p in font_paths]
     lines += [
         "",
         "## Credits",
@@ -74,16 +73,16 @@ def package() -> Path:
     arcname = f"{project['font']['name']}_v{version}"
     zip_path = DIST_DIR / f"{arcname}.zip"
 
-    font_paths = [DIST_DIR / fn for fn in FONT_FILENAMES]
-    missing = [str(p) for p in font_paths if not p.exists()]
-    if missing:
+    # build.py が dist/ に出力したフォントをそのまま同梱する。
+    font_paths = sorted(DIST_DIR.glob("*.ttf"))
+    if not font_paths:
         raise FileNotFoundError(
-            f"missing built fonts: {', '.join(missing)}. Run build.py first."
+            f"no built fonts found in {DIST_DIR}/. Run build.py first."
         )
     if not LICENSE_FILE.exists():
         raise FileNotFoundError(f"missing {LICENSE_FILE}")
 
-    readme = build_readme(project, arcname)
+    readme = build_readme(project, font_paths)
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for path in font_paths:
