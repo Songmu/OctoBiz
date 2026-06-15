@@ -157,7 +157,7 @@ make fmt    # ruff で自動整形・自動修正
 ## 既知の検討ポイント
 
 1. **Bold ウェイトマッチング**: 現状は欧文側を `MonaSans-SemiBold` で合わせています。実プレゼン投影で太さ感を見ながら `Bold` / `ExtraBold` への切り替えを検討してください（`build.py` の `EN_WEIGHT_FOR_JP_BOLD` で変更可）。
-2. **メトリクス**: ascent / descent / line height は BIZTER 由来の値を踏襲しています。Mona Sans 特有のメトリクスにより行間調整が必要になる場合があります。
+2. **メトリクス**: 行送り（typo / hhea）は em（2048）よりやや広めの約 1.11em（`LINE_ASCENT` / `LINE_DESCENT`）に設定し、`USE_TYPO_METRICS` を有効化して全プラットフォームで行送りを統一しています。`usWin*`（クリップ枠）は欧文を 1.06 倍に拡大した実グリフ範囲を `build.py` の `ink_extent()` で実測し、はみ出しによる切れが起きないよう自動算出します。行間を変えたい場合は `LINE_ASCENT` / `LINE_DESCENT` を調整してください。
 3. **ヒンティング**: 最終工程で `ttfautohint --dehint` をかけています（BIZTER と同じ方針）。
 4. **Variable Font 非対応**: BIZ UDPGothic がスタティックフォントのため、Variable 合成は行わず Regular / Bold の 2 ウェイト固定です。
 
