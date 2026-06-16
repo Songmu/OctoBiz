@@ -15,12 +15,13 @@ wrong**.
 
 ## Common pitfalls
 
-### patch 0–9 limit in versioning
-The font's internal version uses the X.MMP scheme (minor 2 digits + patch
-1 digit), so **patch can only be 0–9** (validated at import time by
-`font_revision()` in `build.py`). With tagpr's default patch bump, `0.0.9` is
-followed by `0.0.10`, which makes the **build fail with `ValueError`**. When
-patch reaches 9, manually switch the release PR to a minor bump using the
+### patch 0–99 limit in versioning
+The font's internal version uses the X.MPP scheme (minor 1 digit + patch
+2 digits), matching Mona Sans (e.g. `v2.0.27` → `head.fontRevision = 2.027`),
+so **minor can only be 0–9 and patch 0–99** (validated at import time by
+`font_revision()` in `build.py`). tagpr's default patch bump is fine up to
+`x.y.99`; only when **patch reaches 99** (or minor would exceed 9) do you need
+to manually switch the release PR to a minor/major bump using the
 `minor` label.
 
 ### Replacing source fonts

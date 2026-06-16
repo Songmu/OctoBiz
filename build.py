@@ -45,16 +45,17 @@ def load_manifest(path: str = MANIFEST) -> dict[str, Any]:
 
 
 def font_revision(version: str) -> str:
-    """semver "MAJOR.MINOR.PATCH" を OpenType の version 文字列 "X.MMP" に変換する。
-    制約: minor は 0–99、patch は 0–9。
+    """semver "MAJOR.MINOR.PATCH" を OpenType の version 文字列 "X.MPP" に変換する。
+    制約: minor は 0–9、patch は 0–99。
     これを超える場合は桁上げ(上位を増やす)運用とする。
+    Mona Sans 等と同じく patch を主に回す方式に合わせている。
     """
     major, minor, patch = (int(x) for x in version.split("."))
-    if not (0 <= minor <= 99):
-        raise ValueError(f"minor must be 0-99 for X.MMP scheme: {version}")
-    if not (0 <= patch <= 9):
-        raise ValueError(f"patch must be 0-9 for X.MMP scheme: {version}")
-    return f"{major}.{minor:02d}{patch:01d}"
+    if not (0 <= minor <= 9):
+        raise ValueError(f"minor must be 0-9 for X.MPP scheme: {version}")
+    if not (0 <= patch <= 99):
+        raise ValueError(f"patch must be 0-99 for X.MPP scheme: {version}")
+    return f"{major}.{minor:01d}{patch:02d}"
 
 
 PROJECT = load_manifest()
