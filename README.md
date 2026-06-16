@@ -141,7 +141,7 @@ make fmt    # ruff で自動整形・自動修正
 バージョンは、`fontproject.toml` の `[font].version` にsemver形式で記載します。git tagは `v` prefix付きの値を使用します。
 
 
-一方、OpenType の数値バージョン（`name` ID 5 / `head.fontRevision`）は仕様上 `MAJOR.MINOR`（小数部ちょうど3桁）しか持てず、semver をそのまま格納できません（[OpenFV](https://github.com/openfv/openfv) でも MINOR は3桁固定）。そこで小数部3桁を **minor 2桁 + patch 1桁** に割り当てる方法を採用します。
+一方、OpenType の数値バージョン（`name` ID 5 / `head.fontRevision`）は仕様上 `MAJOR.MINOR`（小数部ちょうど3桁）しか持てず、semver をそのまま格納できません（[OpenFV](https://github.com/openfv/openfv) でも MINOR は3桁固定）。そこで小数部3桁を **minor 1桁 + patch 2桁** に割り当てる方法を採用します（minor は 0–9、patch は 0–99）。これは [Mona Sans](https://github.com/github/mona-sans)（例: `v2.0.27` → `head.fontRevision = 2.027`）と同じ方式で、patch を主に回し minor は大きめの節目で上げる運用を想定しています。
 
 ## リリース
 
