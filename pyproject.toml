@@ -7,7 +7,7 @@
 
 [project]
 name = "octobiz"
-version = "0"
+version = "0.1.0"
 description = "Build tooling for the OctoBiz font"
 requires-python = ">=3.12"
 

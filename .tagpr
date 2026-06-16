@@ -1,5 +1,5 @@
 [tagpr]
 	vPrefix = true
 	releaseBranch = main
-	versionFile = fontproject.toml
+	versionFile = fontproject.toml, pyproject.toml
 	release = draft

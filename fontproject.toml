@@ -1,7 +1,7 @@
 [font]
 name = "OctoBiz"
 # build.py converts this into the OpenType numeric version using the
-# "X.MPP" scheme (minor 1 digit + patch 2 digits), e.g. 2.0.27 -> 2.027.
+# "X.MPP" scheme (minor 1 digit + patch 2 digits), e.g. 2.y.xx -> 2.yxx.
 version = "0.1.0"
 vendor_id = "SNGM"
 copyright = "Copyright 2026 Masayuki Matsuki (Songmu)"
