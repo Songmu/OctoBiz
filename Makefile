@@ -13,19 +13,26 @@ else
 	FONTFORGE_PYTHON ?= python3
 endif
 
-.PHONY: setup build package lint fmt clean
+.PHONY: setup install-system-deps build package lint fmt clean
 
-## setup: install system tools (fontforge, ttfautohint) and dev tools (uv)
-setup:
+## install-system-deps: install system tools (fontforge, ttfautohint) via the OS package manager
+install-system-deps:
 ifeq ($(UNAME),Darwin)
-	brew install fontforge ttfautohint uv
+	brew install fontforge ttfautohint
 else ifeq ($(UNAME),Linux)
 	sudo apt-get update
 	sudo apt-get install -y fontforge python3-fontforge ttfautohint
-	command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 else
-	@echo "Unsupported OS: $(UNAME). Install fontforge, ttfautohint and uv manually." >&2
+	@echo "Unsupported OS: $(UNAME). Install fontforge and ttfautohint manually." >&2
 	@exit 1
+endif
+
+## setup: install system tools (fontforge, ttfautohint) and dev tools (uv)
+setup: install-system-deps
+ifeq ($(UNAME),Darwin)
+	brew install uv
+else ifeq ($(UNAME),Linux)
+	command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 endif
 	uv sync
 

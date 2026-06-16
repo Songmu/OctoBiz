@@ -31,9 +31,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install FontForge and ttfautohint
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fontforge python3-fontforge ttfautohint
+        run: make install-system-deps
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
