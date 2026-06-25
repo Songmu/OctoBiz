@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.1](https://github.com/Songmu/OctoBiz/compare/v0.1.0...v0.1.1) - 2026-06-25
+
+- フォント内部バージョンをX.MPP方式(minor1桁+patch2桁)に変更 by @Songmu in https://github.com/Songmu/OctoBiz/pull/11
+- ci: apt-getの重複をMakefileのinstall-system-depsに集約 by @Songmu in https://github.com/Songmu/OctoBiz/pull/13
+- Bump actions/checkout from 6.0.3 to 7.0.0 by @dependabot[bot] in https://github.com/Songmu/OctoBiz/pull/14
+
 ## [v0.1.0](https://github.com/Songmu/OctoBiz/compare/v0.0.1...v0.1.0) - 2026-06-15
 
 - README に Homebrew でのインストール手順を追記 by @Songmu in https://github.com/Songmu/OctoBiz/pull/7
